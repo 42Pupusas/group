@@ -451,14 +451,13 @@ impl<F: PrimeField, const WINDOW_SIZE: usize> WnafScalar<F, WINDOW_SIZE> {
     /// Computes the w-NAF representation of the given scalar with the specified
     /// `WINDOW_SIZE`.
     pub fn new(scalar: &F) -> Self {
-        let mut wnaf = vec![];
-
-        // Compute the w-NAF form of the scalar.
-        wnaf_form(&mut wnaf, scalar.to_le_repr(), WINDOW_SIZE);
+        let repr = scalar.to_le_repr();
+        let mut wnaf = Vec::with_capacity(repr.as_ref().len() * 8 + WINDOW_SIZE);
+        wnaf_form(&mut wnaf, repr, WINDOW_SIZE);
 
         WnafScalar {
             wnaf,
-            field: PhantomData::default(),
+            field: PhantomData,
         }
     }
 }
@@ -518,11 +517,8 @@ impl<G: Group + memuse::DynamicUsage, const WINDOW_SIZE: usize> memuse::DynamicU
 impl<G: Group, const WINDOW_SIZE: usize> WnafBase<G, WINDOW_SIZE> {
     /// Computes a window table for the given base with the specified `WINDOW_SIZE`.
     pub fn new(base: G) -> Self {
-        let mut table = vec![];
-
-        // Compute a window table for the provided base and window size.
+        let mut table = Vec::with_capacity(1 << (WINDOW_SIZE - 1));
         wnaf_table(&mut table, base, WINDOW_SIZE);
-
         WnafBase { table }
     }
 
